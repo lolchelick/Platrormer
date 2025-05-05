@@ -13,7 +13,9 @@ Rec::Rec(Vector2f pos, Vector2f size, Color color, float speed, float gravity, f
 	m_Speed = speed;
 	m_Gravity = gravity;
 	m_JumpStartSpeed = JSS;
+	m_JumpSpeed = m_JumpStartSpeed;
 	m_Bottom = m_Position.y;
+
 
 	m_Shape.setPosition(m_Position);
 }
@@ -32,6 +34,25 @@ void Rec::update(float deltaTime)
 	if (Keyboard::isKeyPressed(Keyboard::D))
 	{
 		m_Position.x += m_Speed * deltaTime;
+	}
+
+	if (!inJump)
+	{
+		if (Keyboard::isKeyPressed(Keyboard::Space))
+		{
+			inJump = true;
+		}
+	}
+	if (inJump)
+	{
+		m_JumpSpeed -= m_Gravity;
+		m_Position.y -= m_JumpSpeed * deltaTime;
+		if (m_Position.y >= m_Bottom)
+		{
+			m_Position.y = m_Bottom;
+			m_JumpSpeed = m_JumpStartSpeed;
+			inJump = false;
+		}
 	}
 
 	m_Shape.setPosition(m_Position);

@@ -8,7 +8,7 @@ int main()
 {
 	RenderWindow win(VideoMode(1920, 1080), "Platformer", Style::Fullscreen);
 
-	Rec r(Vector2f(150, 950), Vector2f(100.0f, 150.0f), Color::Red, 500.0f, 0.09807f, 50.0f);
+	Rec r(Vector2f(150, 950), Vector2f(100.0f, 150.0f), Color::Red, 500.0f, 0.9807f, 1500.0f);
 
 	Clock clock;
 	float deltaTime;

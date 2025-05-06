@@ -2,7 +2,7 @@
 
 
 
-Rec::Rec(Vector2f pos, Vector2f size, Color color, float speed, float gravity, float JSS)
+Rec::Rec(Vector2f pos, Vector2f size, Color color, float speed, float gravity, float JSS, std::vector<Platform> platforms)
 {
 	m_Size = size;
 	m_Shape.setSize(size);
@@ -15,7 +15,10 @@ Rec::Rec(Vector2f pos, Vector2f size, Color color, float speed, float gravity, f
 	m_JumpStartSpeed = JSS;
 	m_JumpSpeed = m_JumpStartSpeed;
 	m_Bottom = m_Position.y;
+	StartPosY = m_Bottom;
 
+	m_Platforms = platforms;
+	m_OnPlatform = false;
 
 	m_Shape.setPosition(m_Position);
 }
@@ -41,19 +44,49 @@ void Rec::update(float deltaTime)
 		if (Keyboard::isKeyPressed(Keyboard::Space))
 		{
 			inJump = true;
+			up = true;
 		}
 	}
 	if (inJump)
 	{
 		m_JumpSpeed -= m_Gravity;
 		m_Position.y -= m_JumpSpeed * deltaTime;
-		if (m_Position.y >= m_Bottom)
+		if(m_JumpSpeed < 0)
+			up = false;
+		for (int i = 0; i < m_Platforms.size(); i++)
 		{
-			m_Position.y = m_Bottom;
-			m_JumpSpeed = m_JumpStartSpeed;
-			inJump = false;
+			if (m_Position.x + m_Size.x / 2.0f >= m_Platforms.at(i).getPosition().x - m_Platforms.at(i).getSize().x / 2.0f &&
+				m_Position.x - m_Size.x / 2.0f<= m_Platforms.at(i).getPosition().x + m_Platforms.at(i).getSize().x / 2.0f &&
+				m_Position.y + m_Size.y / 2.0f <= m_Platforms.at(i).getPosition().y - m_Platforms.at(i).getSize().y / 2.0f && 
+				!up)
+			{
+				m_Bottom = m_Platforms.at(i).getPosition().y - m_Platforms.at(i).getSize().y / 2.0f - m_Size.y / 2.0f;
+				m_OnPlatform = true;
+			}
 		}
 	}
+
+	if (m_OnPlatform)
+	{
+		for (int i = 0; i < m_Platforms.size(); i++)
+		{
+			if (m_Position.y < m_Platforms.at(i).getPosition().y && (m_Position.x + m_Size.x / 2.0f <= m_Platforms.at(i).getPosition().x - m_Platforms.at(i).getSize().x / 2.0f ||
+				m_Position.x - m_Size.x / 2.0f >= m_Platforms.at(i).getPosition().x + m_Platforms.at(i).getSize().x / 2.0f))
+			{
+				m_Bottom = StartPosY;
+				m_OnPlatform = false;
+			}
+		}
+	}
+	
+
+	if (m_Position.y >= m_Bottom)
+	{
+		m_Position.y = m_Bottom;
+		m_JumpSpeed = m_JumpStartSpeed;
+		inJump = false;
+	}
+
 
 	m_Shape.setPosition(m_Position);
 }

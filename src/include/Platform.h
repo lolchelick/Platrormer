@@ -14,4 +14,5 @@ public:
 	RectangleShape getShape();
 	Vector2f getSize();
 	Vector2f getPosition();
+	FloatRect getRect();
 };

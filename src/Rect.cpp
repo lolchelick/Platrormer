@@ -16,9 +16,11 @@ Rec::Rec(Vector2f pos, Vector2f size, Color color, float speed, float gravity, f
 	m_JumpSpeed = m_JumpStartSpeed;
 	m_Bottom = m_Position.y;
 	StartPosY = m_Bottom;
+	m_FallSpeed = FALL_SPEED;
 
 	m_Platforms = platforms;
 	m_OnPlatform = false;
+	inFall = false;
 
 	m_Shape.setPosition(m_Position);
 }
@@ -26,6 +28,11 @@ Rec::Rec(Vector2f pos, Vector2f size, Color color, float speed, float gravity, f
 RectangleShape Rec::getShape()
 {
 	return m_Shape;
+}
+
+FloatRect Rec::getRect()
+{
+	return m_Shape.getGlobalBounds();
 }
 
 void Rec::update(float deltaTime)
@@ -45,46 +52,60 @@ void Rec::update(float deltaTime)
 		{
 			inJump = true;
 			up = true;
+			m_OnPlatform = false;
+			inFall = false;
 		}
 	}
+
 	if (inJump)
 	{
 		m_JumpSpeed -= m_Gravity;
 		m_Position.y -= m_JumpSpeed * deltaTime;
-		if(m_JumpSpeed < 0)
-			up = false;
-		for (int i = 0; i < m_Platforms.size(); i++)
+		m_OnPlatform = false;
+		if (m_JumpSpeed < 0)
 		{
-			if (m_Position.x + m_Size.x / 2.0f >= m_Platforms.at(i).getPosition().x - m_Platforms.at(i).getSize().x / 2.0f &&
-				m_Position.x - m_Size.x / 2.0f<= m_Platforms.at(i).getPosition().x + m_Platforms.at(i).getSize().x / 2.0f &&
-				m_Position.y + m_Size.y / 2.0f <= m_Platforms.at(i).getPosition().y - m_Platforms.at(i).getSize().y / 2.0f && 
-				!up)
-			{
-				m_Bottom = m_Platforms.at(i).getPosition().y - m_Platforms.at(i).getSize().y / 2.0f - m_Size.y / 2.0f;
-				m_OnPlatform = true;
-			}
+			up = false;
+			inFall = true;
 		}
 	}
 
-	if (m_OnPlatform)
+
+	if (inFall)
 	{
-		for (int i = 0; i < m_Platforms.size(); i++)
+		m_Bottom = StartPosY;
+		m_OnPlatform = false;
+		m_FallSpeed += FREE_FALL_CONST;
+		m_Position.y += m_FallSpeed * deltaTime;
+	}
+
+	for (int i = 0; i < m_Platforms.size(); i++)
+	{
+
+		if (m_OnPlatform)
 		{
-			if (m_Position.y < m_Platforms.at(i).getPosition().y && (m_Position.x + m_Size.x / 2.0f <= m_Platforms.at(i).getPosition().x - m_Platforms.at(i).getSize().x / 2.0f ||
-				m_Position.x - m_Size.x / 2.0f >= m_Platforms.at(i).getPosition().x + m_Platforms.at(i).getSize().x / 2.0f))
+			if (!this->getRect().intersects(m_Platforms.at(i).getRect()))
 			{
-				m_Bottom = StartPosY;
 				m_OnPlatform = false;
+				inFall = true;
 			}
 		}
+		if ((m_Position.y + m_Size.y / 2.0f > m_Platforms.at(i).getPosition().y - m_Platforms.at(i).getSize().y / 2.0f) &&
+			this->getRect().intersects(m_Platforms.at(i).getRect()) && !up && !m_OnPlatform)
+		{
+			m_Bottom = m_Platforms.at(i).getPosition().y - (m_Size.y / 2.0f + m_Platforms.at(i).getSize().y / 2.0f);
+			m_OnPlatform = true;
+			inFall = false;
+		}
 	}
-	
+
+
 
 	if (m_Position.y >= m_Bottom)
 	{
 		m_Position.y = m_Bottom;
 		m_JumpSpeed = m_JumpStartSpeed;
 		inJump = false;
+		m_FallSpeed = FALL_SPEED;
 	}
 
 

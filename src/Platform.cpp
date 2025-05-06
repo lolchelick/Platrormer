@@ -25,3 +25,8 @@ Vector2f Platform::getPosition()
 {
 	return m_Position;
 }
+
+FloatRect Platform::getRect()
+{
+	return m_Shape.getGlobalBounds();
+}
